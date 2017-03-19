@@ -202,10 +202,7 @@ Now, we apply the model to the original testing data set downloaded from the dat
 
     result <- predict(modelRf, testCleaned[, -length(names(testCleaned))])
     result
-
-    ##  [1] B A B A A E D B A A B C B A E E A B B B
-    ## Levels: A B C D E
-
+    ## Not disclosing the results due to honor code
 Appendix: Figures
 =================
 
@@ -224,10 +221,10 @@ A good set of features is when they are highly uncorrelated (orthogonal) each ot
     corrPlot <- cor(trainData[, -length(names(trainData))])
     corrplot(corrPlot, method="color")
 
-![](PML_Project_report_2_files/figure-markdown_strict/unnamed-chunk-11-1.png)
+![plot of chunk unnamed-chunk-12](figure/unnamed-chunk-12-1.png)
 \#\# Decision Tree Visualization
 
     treeModel <- rpart(classe ~ ., data=trainData, method="class")
     prp(treeModel) # fast plot
 
-![](PML_Project_report_2_files/figure-markdown_strict/unnamed-chunk-12-1.png)
+![plot of chunk unnamed-chunk-13](figure/unnamed-chunk-13-1.png)
