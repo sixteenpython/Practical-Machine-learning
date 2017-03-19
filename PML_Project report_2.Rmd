@@ -1,0 +1,103 @@
+---
+title: "Practical Machine Learning"
+author: "Anand Venkataraman"
+output: md_document
+---
+# Preparing the data and R packages
+## Load packages, set caching
+```{r}
+library(caret)
+library(corrplot)
+library(Rtsne)
+library(xgboost)
+library(stats)
+library(knitr)
+library(ggplot2)
+library(rpart)
+library(rpart.plot)
+library(randomForest)
+knitr::opts_chunk$set(cache=TRUE)
+```
+## Getting data
+```{r}
+# file names
+train.name = "C://Users//AnandVasumathi//Documents//pml-training.csv"
+test.name = "C://Users//AnandVasumathi//Documents//pml-testing.csv"
+
+# load the CSV files as data.frame 
+trainRaw = read.csv("C://Users//AnandVasumathi//Documents//pml-training.csv")
+testRaw = read.csv("C://Users//AnandVasumathi//Documents//pml-testing.csv")
+dim(trainRaw)
+dim(testRaw)
+names(train)
+```
+## The raw training data has 19622 rows of observations and 158 features (predictors). Column X is unusable row number. While the testing data has 20 rows and the same 158 features. There is one column of target outcome named classe.
+
+## Data Cleaning
+## First, extract target outcome (the activity quality) from training data, so now the training data contains only the predictors (the activity monitors).
+```{r}
+sum(complete.cases(trainRaw))
+```
+## removing columns with NA
+```{r}
+trainRaw <- trainRaw[, colSums(is.na(trainRaw)) == 0] 
+testRaw <- testRaw[, colSums(is.na(testRaw)) == 0]
+```
+## Finer Cleaning
+```{r}
+classe <- trainRaw$classe
+trainRemove <- grepl("^X|timestamp|window", names(trainRaw))
+trainRaw <- trainRaw[, !trainRemove]
+trainCleaned <- trainRaw[, sapply(trainRaw, is.numeric)]
+trainCleaned$classe <- classe
+testRemove <- grepl("^X|timestamp|window", names(testRaw))
+testRaw <- testRaw[, !testRemove]
+testCleaned <- testRaw[, sapply(testRaw, is.numeric)]
+```
+## Slicing of Data
+```{r}
+set.seed(22519) # For reproducibile purpose
+inTrain <- createDataPartition(trainCleaned$classe, p=0.70, list=F)
+trainData <- trainCleaned[inTrain, ]
+testData <- trainCleaned[-inTrain, ]
+```
+## Modelling of data
+## We fit a predictive model for activity recognition using Random Forest algorithm because it automatically selects important variables and is robust to correlated covariates & outliers in general. We will use 5-fold cross validation when applying the algorithm.
+```{r}
+controlRf <- trainControl(method="cv", 5)
+modelRf <- train(classe ~ ., data=trainData, method="rf", trControl=controlRf, ntree=250)
+modelRf
+```
+## Then, we estimate the performance of the model on the validation data set.
+```{r}
+predictRf <- predict(modelRf, testData)
+confusionMatrix(testData$classe, predictRf)
+```
+## The average accuracy is 99.4%, with error rate is 0.60%. So, expected error rate of less than 1% is fulfilled
+```{r}
+accuracy <- postResample(predictRf, testData$classe)
+accuracy
+oose <- 1 - as.numeric(confusionMatrix(testData$classe, predictRf)$overall[1])
+oose
+```
+# Predicting for Test Data Set
+## Now, we apply the model to the original testing data set downloaded from the data source. We remove the problem_id column first.
+
+```{r}
+result <- predict(modelRf, testCleaned[, -length(names(testCleaned))])
+result
+```
+# Appendix: Figures
+## Correlation Matrix Visualization
+## Plot of correlation matrix
+## Plot a correlation matrix between features.
+## A good set of features is when they are highly uncorrelated (orthogonal) each others. The plot below shows average of correlation is not too high, so I choose to not perform further PCA preprocessing.
+```{r}
+ccorrPlot <- cor(trainData[, -length(names(trainData))])
+corrplot(corrPlot, method="color")
+```
+## Decision Tree Visualization
+```{r}
+treeModel <- rpart(classe ~ ., data=trainData, method="class")
+prp(treeModel) # fast plot
+```
