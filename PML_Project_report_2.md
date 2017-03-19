@@ -221,10 +221,10 @@ A good set of features is when they are highly uncorrelated (orthogonal) each ot
     corrPlot <- cor(trainData[, -length(names(trainData))])
     corrplot(corrPlot, method="color")
 
-![plot of chunk unnamed-chunk-12](figure/unnamed-chunk-12-1.png)
+![plot of chunk unnamed-chunk-11](Figures/unnamed-chunk-11-1.png)
 \#\# Decision Tree Visualization
 
     treeModel <- rpart(classe ~ ., data=trainData, method="class")
     prp(treeModel) # fast plot
 
-![plot of chunk unnamed-chunk-13](figure/unnamed-chunk-13-1.png)
+![plot of chunk unnamed-chunk-12](Figures/unnamed-chunk-12-1.png)
